@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import sys
+import os
 
 import scipy.io.wavfile
 import scipy.signal
@@ -97,7 +98,9 @@ def process_audio(file_path):
     print("Identified chord:", chord)
 
 if __name__ == '__main__':
-    process_audio('ChordSamples/CMaj')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    audio_file_path = os.path.join(script_dir, 'ChordSamples', 'EMaj.wav')
+    process_audio(audio_file_path)
     # if len(sys.argv) < 2:
     #     print("Usage: python test.py <path_to_audio_file.wav>")
     # else:
