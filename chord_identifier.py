@@ -196,8 +196,8 @@ def process_audio(file_path, thresh = 0.24, filter_tolerance = 0.03, plot_data =
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    #audio_file_path = os.path.join(script_dir, 'GeneratedChords', 'synth', 'Gm_synth.wav')
-    audio_file_path = os.path.join(script_dir, 'ChordSamples', 'Bm.wav')
+    audio_file_path = os.path.join(script_dir, 'GeneratedChords', 'synth', 'Gmaj_synth.wav')
+    #audio_file_path = os.path.join(script_dir, 'ChordSamples', 'Emaj.wav')
 
     note_list = process_audio(audio_file_path)
     chords = label_chord(note_list)
