@@ -83,6 +83,9 @@ def generate_note_variations(note_list):
     return list(itertools.product(*variations))
 
 def label_chord(note_list):
+    if len(note_list) == 0:
+        print("No chord being played")
+        return
     matching_chords = set()
     lowest_note = note_list[0]
 
@@ -119,33 +122,54 @@ def label_chord(note_list):
 
     return ["Unknown Chord"]
 
-def process_audio(file_path, thresh = 0.24, filter_tolerance = 0.03, plot_data = True):
+def process_audio(file_path, base_thresh=0.2, filter_tolerance=0.03, dynamic_factor=5.0, plot_data=True):
     # Load audio data (assumes a WAV file; if stereo, only the first channel is used)
     fs, data = scipy.io.wavfile.read(file_path)
     if data.ndim > 1:
         data = data[:, 0]
     
+    # Normalize the signal
+    data = data / np.max(np.abs(data))
+    
     N = len(data)
+    # Use Hanning window (or change to Blackman if desired)
     window = np.hanning(N)
     data_windowed = data * window
 
-    # Compute FFT and only consider the positive spectrum
-    fft_complex = np.fft.fft(data_windowed)
-    fft_magnitude = np.abs(fft_complex)[:N // 2]
-    freqs = np.fft.fftfreq(N, d=1/fs)[:N // 2]
+    # Compute FFT using zero-padding to improve resolution
+    padded_length = 2 ** int(np.ceil(np.log2(N))) * 2
+    fft_complex = np.fft.fft(data_windowed, n=padded_length)
+    fft_magnitude = np.abs(fft_complex)[:padded_length // 2]
+    freqs = np.fft.fftfreq(padded_length, d=1/fs)[:padded_length // 2]
 
-    # Limit the frequency range to 5000 Hz
+    # Limit frequency range (e.g. 20 Hz to 5000 Hz)
+    min_freq = 20
     max_freq = 5000
-    valid_indices = freqs <= max_freq
+    valid_indices = (freqs >= min_freq) & (freqs <= max_freq)
     freqs = freqs[valid_indices]
     fft_magnitude = fft_magnitude[valid_indices]
 
-    # Detect peaks in the magnitude spectrum
-    peak_freqs, peak_mags = get_peaks(freqs, fft_magnitude, thresh)
-    # Remove harmonic frequencies
+    # Smooth the FFT magnitude to reduce noise
+    from scipy.ndimage import gaussian_filter1d
+    fft_magnitude_smoothed = gaussian_filter1d(fft_magnitude, sigma=2)
+
+    # Calculate dynamic threshold based on average FFT magnitude (average power)
+    avg_power = np.mean(fft_magnitude_smoothed)
+    dynamic_thresh = dynamic_factor * avg_power  # Adjust dynamic_factor as needed
+    
+    # Optionally, you can also mix with a base threshold:
+    used_thresh = max(base_thresh * np.max(fft_magnitude_smoothed), dynamic_thresh)
+
+    # Detect peaks using dynamic threshold as prominence
+    from scipy.signal import find_peaks
+    peaks, properties = find_peaks(fft_magnitude_smoothed, prominence=used_thresh)
+    peak_freqs = freqs[peaks]
+    peak_prominences = properties['prominences']
+
+    # Remove harmonic frequencies using existing function
     fundamental_freqs = filter_harmonics(peak_freqs, filter_tolerance)
 
-    # Convert fundamental frequencies to note names
+    # Convert detected fundamental frequencies to note names
     detected_notes = []
     note_labels = []
     for f in fundamental_freqs:
@@ -162,23 +186,24 @@ def process_audio(file_path, thresh = 0.24, filter_tolerance = 0.03, plot_data =
     print("Detected notes:", sorted_notes)
 
     if plot_data:
-        # Plot the results
+        import matplotlib.pyplot as plt
         plt.figure(figsize=(12, 8))
 
-        # Plot the windowed audio data
+        # Plot the windowed audio signal
         plt.subplot(3, 1, 1)
         plt.plot(data_windowed)
         plt.title("Windowed Audio Data")
         plt.xlabel("Sample")
         plt.ylabel("Amplitude")
 
-        # Plot the FFT magnitude spectrum
+        # Plot the smoothed FFT magnitude spectrum and the detected peaks
         plt.subplot(3, 1, 2)
-        plt.plot(freqs, fft_magnitude)
-        plt.scatter(peak_freqs, peak_mags, color='red')
+        plt.plot(freqs, fft_magnitude_smoothed, label="Smoothed FFT Magnitude")
+        plt.scatter(peak_freqs, peak_prominences, color='red', label="Detected Peaks")
         plt.title("FFT Magnitude Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")
+        plt.legend()
 
         # Plot the detected fundamental frequencies with note labels
         plt.subplot(3, 1, 3)
@@ -196,7 +221,7 @@ def process_audio(file_path, thresh = 0.24, filter_tolerance = 0.03, plot_data =
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    audio_file_path = os.path.join(script_dir, 'GeneratedChords', 'synth', 'Gmaj_synth.wav')
+    audio_file_path = os.path.join(script_dir, 'GeneratedChords', 'synth', 'Fsus4_synth.wav')
     #audio_file_path = os.path.join(script_dir, 'ChordSamples', 'Emaj.wav')
 
     note_list = process_audio(audio_file_path)

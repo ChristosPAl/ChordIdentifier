@@ -22,7 +22,7 @@ def test_chord_identifier(directory):
         if filename.endswith(".wav"):
             file_path = os.path.join(directory, filename)
             expected_label = extract_label_from_filename(filename)
-            note_list = CI.process_audio(file_path, 0.24, 0.03, False)
+            note_list = CI.process_audio(file_path, 0.24, 0.03, 2, False)
             if note_list is None:
                 print(f"Failed to process audio for file: {filename}")
                 continue

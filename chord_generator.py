@@ -92,7 +92,7 @@ def main():
     soundfont_path = os.path.join(script_dir, 'FluidR3_GM.sf2')  # Update this path to the new soundfont
     chords = load_chord_db(chord_db_path)
 
-    instruments = ['guitar', 'piano', 'synth']
+    instruments = ['guitar']#, 'piano', 'synth']
     output_base_dir = os.path.join(script_dir, 'GeneratedChords')
 
     for instrument in instruments:
