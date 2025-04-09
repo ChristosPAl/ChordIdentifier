@@ -31,7 +31,7 @@ The Chord Identifier is a Python-based application designed to detect and label 
 
 1. **Clone the repository:**
      ```bash
-     git clone <repository_url>
+     git clone https://github.com/ChristosPAl/ChordIdentifier
      ```
 
 2. **Install the required Python libraries:**
