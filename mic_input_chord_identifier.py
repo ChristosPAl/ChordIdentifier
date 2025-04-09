@@ -102,63 +102,6 @@ def process_audio_thread(sample_rate):
 ############################
 # Tkinter GUI Application  #
 ############################
-# class ChordGUI(tk.Tk):
-#     """
-#     Tkinter-based GUI for displaying the detected chord and audio spectrum.
-#     Updates periodically by polling the chord_queue and spectrum_queue.
-#     """
-#     def __init__(self):
-#         super().__init__()
-#         self.title("Chord Identifier")
-#         self.geometry("800x600")
-        
-#         # Label to display the latest detected chord
-#         self.chord_var = tk.StringVar(value="Detected Chord: None")
-#         self.label = ttk.Label(self, textvariable=self.chord_var, font=("Helvetica", 28))
-#         self.label.pack(pady=20)
-        
-#         # Set up a matplotlib figure embedded in the Tkinter window for spectrum display
-#         self.fig = mplfig.Figure(figsize=(8, 4), dpi=100)
-#         self.ax = self.fig.add_subplot(111)
-#         self.ax.set_title("Spectrum of Recorded Segment")
-#         self.ax.set_xlabel("Frequency (Hz)")
-#         self.ax.set_ylabel("Magnitude")
-#         self.ax.set_xlim(0, 5000)  # Limit frequency axis to 5000 Hz
-#         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-#         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        
-#         # Start the GUI periodic updates
-#         self.update_gui()
-    
-#     def update_gui(self):
-#         """
-#         Periodically updates the GUI by polling for:
-#         - A new detected chord in chord_queue, updating the label if found.
-#         - New FFT spectrum data in spectrum_queue, updating the plot if available.
-#         Reschedules itself every 100 ms.
-#         """
-#         # Update chord if available
-#         try:
-#             chord = chord_queue.get_nowait()
-#             self.chord_var.set("Detected Chord: " + str(chord))
-#         except queue.Empty:
-#             pass
-        
-#         # Update spectrum if available
-#         try:
-#             freqs, fft_magnitude = spectrum_queue.get_nowait()
-#             self.ax.cla()  # Clear previous plot
-#             self.ax.plot(freqs, fft_magnitude)
-#             self.ax.set_title("Spectrum of Recorded Segment")
-#             self.ax.set_xlabel("Frequency (Hz)")
-#             self.ax.set_ylabel("Magnitude")
-#             self.ax.set_xlim(0, 5000)
-#             self.canvas.draw()
-#         except queue.Empty:
-#             pass
-        
-#         # Schedule the next update in 100 milliseconds
-#         self.after(100, self.update_gui)
 
 class ChordGUI(tk.Tk):
     """
